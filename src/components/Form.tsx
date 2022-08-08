@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useReducer, useState } from 'react';
 
 import { Sub } from '../types';
 
@@ -10,20 +10,57 @@ interface FormProps {
     onNewSub: (newSub: Sub) => void;
 }
 
+type FormReducerAction =
+    | {
+          type: 'change_value';
+          payload: {
+              inputName: string;
+              inputValue: string;
+          };
+      }
+    | {
+          type: 'clear';
+      };
+
+const INITIAL_STATE = {
+    nick: '',
+    subMonths: 0,
+    avatar: '',
+    description: '',
+};
+
+const formReducer = (
+    state: FormState['inputValues'],
+    action: FormReducerAction
+) => {
+    switch (action.type) {
+        case 'change_value':
+            const { inputName, inputValue } = action.payload;
+            return {
+                ...state,
+                [inputName]: inputValue,
+            };
+
+        case 'clear':
+            return INITIAL_STATE;
+
+        default:
+            return state;
+    }
+};
+
 const Form = ({ onNewSub }: FormProps) => {
-    const [inputValues, setInputValues] = useState<FormState['inputValues']>({
-        nick: '',
-        subMonths: 0,
-        avatar: '',
-        description: '',
-    });
+    const [inputValues, dispatch] = useReducer(formReducer, INITIAL_STATE);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
-        setInputValues({
-            ...inputValues,
-            [e.target.name]: e.target.value,
+        dispatch({
+            type: 'change_value',
+            payload: {
+                inputName: e.target.name,
+                inputValue: e.target.value,
+            },
         });
     };
 
@@ -31,6 +68,11 @@ const Form = ({ onNewSub }: FormProps) => {
         event.preventDefault();
 
         onNewSub(inputValues);
+        handleClear();
+    };
+
+    const handleClear = () => {
+        dispatch({ type: 'clear' });
     };
 
     return (
@@ -63,6 +105,9 @@ const Form = ({ onNewSub }: FormProps) => {
                     value={inputValues.description}
                     onChange={handleChange}
                 />
+                <button onClick={handleClear} type="button">
+                    Clear form
+                </button>
                 <button type="submit">Save new sub</button>
             </form>
         </div>
