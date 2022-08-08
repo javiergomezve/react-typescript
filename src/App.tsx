@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 
 import './App.css';
-import { Sub, SubsResponseFromApi } from './types';
+import { Sub } from './types';
+import { getAllSubs } from './services/getAllSubs';
 import List from './components/List';
 import Form from './components/Form';
 
@@ -22,24 +22,7 @@ function App() {
     };
 
     useEffect(() => {
-        const fetchSubs = (): Promise<SubsResponseFromApi> => {
-            return axios
-                .get('http://localhost:9001/subs')
-                .then(response => response.data);
-        };
-
-        const mapFromApiToSubs = (
-            apiResponse: SubsResponseFromApi
-        ): Array<Sub> => {
-            return apiResponse.map(subFromApi => ({
-                nick: subFromApi.nick,
-                subMonths: subFromApi.months,
-                avatar: subFromApi.profileUrl,
-                description: subFromApi.description,
-            }));
-        };
-
-        fetchSubs().then(mapFromApiToSubs).then(setSubs);
+        getAllSubs().then(setSubs);
     }, []);
 
     return (
